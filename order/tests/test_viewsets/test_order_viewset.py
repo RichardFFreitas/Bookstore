@@ -26,16 +26,18 @@ class TestOrderViewSet(APITestCase):
 
         order_data = json.loads(response.content)
 
-        # Modifique a verificação para refletir a estrutura real
-        self.assertIsInstance(order_data, list)
-        self.assertGreater(len(order_data), 0)
+        # Verifique que a resposta contém a chave "results" com uma lista
+        self.assertIn("results", order_data)
+        self.assertIsInstance(order_data["results"], list)
+        self.assertGreater(len(order_data["results"]), 0)
 
-        # Acesse diretamente o primeiro elemento
-        self.assertEqual(order_data[0]["product"][0]["title"], self.product.title)
-        self.assertEqual(order_data[0]["product"][0]["price"], self.product.price)
-        self.assertEqual(order_data[0]["product"][0]["active"], self.product.active)
+        # Agora acesse o primeiro item na lista de resultados
+        self.assertEqual(order_data["results"][0]["product"][0]["title"], self.product.title)
+        self.assertEqual(order_data["results"][0]["product"][0]["price"], self.product.price)
+        self.assertEqual(order_data["results"][0]["product"][0]["active"], self.product.active)
         self.assertEqual(
-            order_data[0]["product"][0]["category"][0]["title"], self.category.title
+            order_data["results"][0]["product"][0]["category"][0]["title"],
+            self.category.title,
         )
 
     def test_create_order(self):

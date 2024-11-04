@@ -20,13 +20,14 @@ class CategoryViewSet(APITestCase):
 
         category_data = json.loads(response.content)
 
-        # Verifique se category_data é uma lista e possui elementos
-        self.assertIsInstance(category_data, list)
-        self.assertGreater(len(category_data), 0)
+        # Verifique que a resposta contém a chave "results" com uma lista
+        self.assertIn("results", category_data)
+        self.assertIsInstance(category_data["results"], list)
+        self.assertGreater(len(category_data["results"]), 0)
 
-        # Acesse diretamente o primeiro item da lista
-        self.assertEqual(category_data[0]["title"], self.category.title)
-
+        # Acesse o primeiro item dentro da lista "results"
+        self.assertEqual(category_data["results"][0]["title"], self.category.title)
+        
     def test_create_category(self):
         data = json.dumps({"title": "technology"})
 
