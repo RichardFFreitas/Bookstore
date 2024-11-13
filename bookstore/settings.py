@@ -24,7 +24,7 @@ if not SECRET_KEY:
     raise ValueError("No SECRET_KEY set for Django application")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = int(os.environ.get("DEBUG", default=0))
+DEBUG = False
 
 
 # Application definition
@@ -130,7 +130,13 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
 
 STATIC_URL = "static/"
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
+# Configurações de segurança
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+SECURE_SSL_REDIRECT = False
+SESSION_COOKIE_SECURE = False
+CSRF_COOKIE_SECURE = False
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
@@ -156,4 +162,9 @@ INTERNAL_IPS = [
 
 # 'DJANGO_ALLOWED_HOSTS' should be a single string of hosts with a space between each.
 # For example: 'DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]'
-ALLOWED_HOSTS = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost 127.0.0.1 richardffreitas.pythonanywhere.com .pythonanywhere.com").split(" ")
+ALLOWED_HOSTS = [
+    'localhost',
+    '127.0.0.1',
+    'richardffreitas.pythonanywhere.com',
+    '.pythonanywhere.com'
+]
