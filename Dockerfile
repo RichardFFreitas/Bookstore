@@ -38,6 +38,8 @@ RUN apt-get update \
     # deps for building python deps
     build-essential
 
+RUN apt-get update && apt-get install -y git
+
 # install poetry - respects $POETRY_VERSION & $POETRY_HOME
 RUN pip install poetry
 # install postgres dependencies inside of Docker
