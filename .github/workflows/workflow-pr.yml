@@ -1,34 +1,107 @@
+# name: Python Pull Request Workflow
+# on: [pull_request]
+# jobs:
+#   qa:
+#     name: Quality check
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#       - name: Set up Python
+#         uses: actions/setup-python@v4
+#         with:
+#           python-version: 3.12
+#       - name: Install poetry
+#         run: |
+#           pip install -U pip
+#           pip install poetry
+#           poetry install
+#         env:
+#           POETRY_VIRTUALENVS_CREATE: false
+#       - name: View poetry --help
+#         run: poetry --help
+#       - name: Install dependencies
+#         shell: bash
+#         run: python -m poetry install
+#       - name: Test
+#         env:
+#           SECRET_KEY: ${{ secrets.SECRET_KEY }}
+#           SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+#         run: |
+#           poetry run python manage.py test
+#       - name: Wemake Python Stylguide
+#         uses: wemake-services/wemake-python-styleguide@0.19.2
+#         continue-on-error: true
+#         with:
+#           reporter: "github-pr-review"
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 name: Python Pull Request Workflow
 on: [pull_request]
+
 jobs:
   qa:
     name: Quality check
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:13
+        env:
+          POSTGRES_DB: bookstore_test_db
+          POSTGRES_USER: bookstore_test_user
+          POSTGRES_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd="pg_isready -U bookstore_test_user -d bookstore_test_db"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
     steps:
       - uses: actions/checkout@v3
+
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: 3.12
-      - name: Install poetry
+
+      - name: Install Poetry
         run: |
           pip install -U pip
           pip install poetry
           poetry install
         env:
           POETRY_VIRTUALENVS_CREATE: false
-      - name: View poetry --help
-        run: poetry --help
+
       - name: Install dependencies
         shell: bash
-        run: python -m poetry install
-      - name: Test
-        env:
-          SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+        run: poetry install
+
+      - name: Wait for PostgreSQL to be ready
         run: |
+          until pg_isready -h 127.0.0.1 -p 5432 -U bookstore_test_user; do
+            echo "Waiting for PostgreSQL..."
+            sleep 2
+          done
+
+      - name: Run Django Tests
+        env:
+          DEBUG: '0'
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          DJANGO_ALLOWED_HOSTS: 'localhost 127.0.0.1 [::1]'
+          SQL_ENGINE: 'django.db.backends.postgresql'
+          SQL_DATABASE: 'bookstore_test_db'
+          SQL_USER: 'bookstore_test_user'
+          SQL_PASSWORD: ${{ secrets.SQL_PASSWORD }}
+          SQL_HOST: '127.0.0.1'
+          SQL_PORT: '5432'
+        run: |
+          poetry run python manage.py migrate
           poetry run python manage.py test
-      - name: Wemake Python Stylguide
+
+      - name: Wemake Python Styleguide
         uses: wemake-services/wemake-python-styleguide@0.19.2
         continue-on-error: true
         with:
