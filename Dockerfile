@@ -13,7 +13,7 @@ ENV PYTHONUNBUFFERED=1 \
     \
     # poetry
     # https://python-poetry.org/docs/configuration/#using-environment-variables
-    POETRY_VERSION=1.0.3 \
+    POETRY_VERSION=1.6.1 \
     # make poetry install to this location
     POETRY_HOME="/opt/poetry" \
     # make poetry create the virtual environment in the project's root
@@ -52,10 +52,9 @@ WORKDIR $PYSETUP_PATH
 COPY poetry.lock pyproject.toml ./
 
 # install runtime deps - uses $POETRY_VIRTUALENVS_IN_PROJECT internally
-RUN poetry install --no-dev
+RUN poetry install --only main --no-root
 
-# quicker install as runtime deps are already installed
-RUN poetry install
+RUN ln -sf $VENV_PATH/bin/python /usr/local/bin/python
 
 WORKDIR /app
 
@@ -63,4 +62,4 @@ COPY . /app/
 
 EXPOSE 8000
 
-CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
+CMD ["poetry", "run", "python", "manage.py", "runserver", "0.0.0.0:8000"]
