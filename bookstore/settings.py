@@ -275,6 +275,7 @@ USE_TZ = True  # Ativa suporte para fuso horário
 
 # Arquivos estáticos (CSS, JavaScript, Imagens)
 STATIC_URL = "static/"  # URL de acesso aos arquivos estáticos
+STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 
 # Tipo de campo de chave primária padrão
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
